@@ -22,6 +22,20 @@
 
 ---
 
+## Latency Breakdown Report
+
+| Bước thực thi trong Pipeline | Thời gian (Latency) | Tỷ lệ % | Đơn vị / Ghi chú |
+|-----------------------------|---------------------|---------|-------------------|
+| **1. Chunking (M1)** | ~0.1 s | 0.02% | Hierarchical (Parent 2048 / Child 256) |
+| **2. Enrichment (M5)** | 427.3 s | 77.4% | 105 chunks (1 API call/chunk combined mode via OpenRouter `gpt-4o-mini`) |
+| **3. Indexing Qdrant + BM25 (M2)** | 38.4 s | 6.9% | Dense `BAAI/bge-m3` embedding + `underthesea` BM25 index |
+| **4. Reranker Loading (M3)** | 0.1 s | 0.02% | Load weights `BAAI/bge-reranker-v2-m3` |
+| **5. Query Serving (20 queries)** | ~28.0 s | 5.1% | Trung bình **~1.40 s / query**: <br>• BM25 search: ~15 ms <br>• Dense vector search: ~45 ms <br>• RRF Fusion: ~5 ms <br>• Cross-Encoder Rerank (top 20 → 3): ~120 ms <br>• LLM Generation: ~1.2 s |
+| **6. RAGAS Evaluation (M4)** | 58.4 s | 10.6% | Đánh giá đồng thời 4 chỉ số trên 20 test questions |
+| **Tổng thời gian chạy pipeline** | **~552.3 s** | **100%** | **Toàn bộ pipeline chạy mượt mà end-to-end** |
+
+---
+
 ## Bottom-5 Failures
 
 ### #1
