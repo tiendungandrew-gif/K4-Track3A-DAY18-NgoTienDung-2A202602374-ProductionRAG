@@ -22,6 +22,9 @@ class RerankResult:
     rank: int
 
 
+_cross_encoder_cache: dict[str, object] = {}
+
+
 class CrossEncoderReranker:
     def __init__(self, model_name: str = "BAAI/bge-reranker-v2-m3"):
         self.model_name = model_name
@@ -29,8 +32,10 @@ class CrossEncoderReranker:
 
     def _load_model(self):
         if self._model is None:
-            from sentence_transformers import CrossEncoder
-            self._model = CrossEncoder(self.model_name)
+            if self.model_name not in _cross_encoder_cache:
+                from sentence_transformers import CrossEncoder
+                _cross_encoder_cache[self.model_name] = CrossEncoder(self.model_name)
+            self._model = _cross_encoder_cache[self.model_name]
         return self._model
 
     def rerank(self, query: str, documents: list[dict], top_k: int = RERANK_TOP_K) -> list[RerankResult]:
